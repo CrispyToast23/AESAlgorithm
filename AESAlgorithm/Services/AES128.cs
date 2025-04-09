@@ -12,7 +12,7 @@ namespace AESAlgorithm.Services
 
         private static readonly byte[] Rcon =
         [
-            0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36
+            0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36, 0x6C
         ];
 
         private static readonly byte[,] mixColumnsMatrix = new byte[4, 4]
@@ -98,7 +98,7 @@ namespace AESAlgorithm.Services
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    roundKey[i, j] = expandedKey[(round * 4) + i, j];
+                    roundKey[i, j] = expandedKey[j, (round * 4) + i];
                 }
             }
 

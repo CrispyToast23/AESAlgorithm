@@ -1,4 +1,5 @@
-﻿using AESAlgorithm.Services;
+﻿using System.Text;
+using AESAlgorithm.Services;
 
 namespace AESAlgorithm.Common
 {
@@ -51,6 +52,27 @@ namespace AESAlgorithm.Common
             }
 
             return currentWord;
+        }
+
+        public static byte[] ConvertStringToBytes(string input)
+        {
+            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+
+            int paddingRequired = 16 - (inputBytes.Length % 16);
+            if (paddingRequired != 16)
+            {
+                byte[] paddedInput = new byte[inputBytes.Length + paddingRequired];
+                Array.Copy(inputBytes, paddedInput, inputBytes.Length);
+
+                for (int i = 0; i < paddingRequired; i++)
+                {
+                    paddedInput[inputBytes.Length + i] = 0x00;
+                }
+
+                return paddedInput;
+            }
+
+            return inputBytes;
         }
     }
 }
