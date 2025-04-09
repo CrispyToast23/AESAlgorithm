@@ -1,0 +1,56 @@
+﻿using AESAlgorithm.Services;
+
+namespace AESAlgorithm.Common
+{
+    public static class Helpers
+    {
+        public static byte GFMultiply(byte currentByte, byte fixedByte)
+        {
+            byte result = 0;
+            byte tempFixedByte = fixedByte;
+
+            for (int i = 7; i >= 0; i--)
+            {
+                if ((currentByte & 0x80) != 0)
+                {
+                    result ^= tempFixedByte;
+                }
+
+                currentByte <<= 1;
+                if ((currentByte & 0x100) != 0)
+                {
+                    currentByte ^= 0x1B;
+                }
+
+                tempFixedByte <<= 1;
+                if ((tempFixedByte & 0x100) != 0)
+                {
+                    tempFixedByte ^= 0x1B;
+                }
+            }
+
+            return result;
+        }
+
+        public static byte[] RotateWord(byte[] currentWord)
+        {
+            byte temp = currentWord[0];
+            for (int i = 0; i < 3; i++)
+            {
+                currentWord[i] = currentWord[i + 1];
+            }
+            currentWord[3] = temp;
+            return currentWord;
+        }
+
+        public static byte[] SubWord(byte[] currentWord, byte[,] sBox)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                currentWord[i] = sBox[currentWord[i] >> 4, currentWord[i] & 0x0F];
+            }
+
+            return currentWord;
+        }
+    }
+}
