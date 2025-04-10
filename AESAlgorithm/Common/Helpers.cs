@@ -18,7 +18,7 @@ namespace AESAlgorithm.Common
                 }
 
                 currentByte <<= 1;
-                if ((currentByte & 0x100) != 0)
+                if ((currentByte & 0x80) != 0)
                 {
                     currentByte ^= 0x1B;
                 }
@@ -35,12 +35,15 @@ namespace AESAlgorithm.Common
 
         public static byte[] RotateWord(byte[] currentWord)
         {
-            byte temp = currentWord[0];
-            for (int i = 0; i < 3; i++)
+            int arrLength = currentWord.Length;
+
+            for (int i = 0; i < arrLength / 2; i++)
             {
-                currentWord[i] = currentWord[i + 1];
+                byte temp = currentWord[i];
+                currentWord[i] = currentWord[arrLength - i - 1];
+                currentWord[arrLength - i - 1] = temp;
             }
-            currentWord[3] = temp;
+
             return currentWord;
         }
 
