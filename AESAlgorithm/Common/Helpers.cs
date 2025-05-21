@@ -5,32 +5,27 @@ namespace AESAlgorithm.Common
 {
     public static class Helpers
     {
-        public static byte GFMultiply(byte currentByte, byte fixedByte)
+        public static byte GFMultiply(byte a, byte b)
         {
-            byte result = 0;
-            byte tempFixedByte = fixedByte;
+            byte p = 0;
 
-            for (int i = 7; i >= 0; i--)
+            for (int counter = 0; counter < 8; counter++)
             {
-                if ((currentByte & 0x80) != 0)
+                if ((b & 1) != 0)
                 {
-                    result ^= tempFixedByte;
+                    p ^= a;
                 }
 
-                currentByte <<= 1;
-                if ((currentByte & 0x80) != 0)
+                bool hi_bit_set = (a & 0x80) != 0;
+                a <<= 1;
+                if (hi_bit_set)
                 {
-                    currentByte ^= 0x1B;
+                    a ^= 0x1B; /* x^8 + x^4 + x^3 + x + 1 */
                 }
-
-                tempFixedByte <<= 1;
-                if ((tempFixedByte & 0x100) != 0)
-                {
-                    tempFixedByte ^= 0x1B;
-                }
+                b >>= 1;
             }
 
-            return result;
+            return p;
         }
 
         public static byte[] RotateWord(byte[] currentWord)
@@ -76,6 +71,21 @@ namespace AESAlgorithm.Common
             }
 
             return inputBytes;
+        }
+
+        public static byte[,] GetRoundKey(byte[,] expandedKey, int round)
+        {
+            byte[,] roundKey = new byte[4, 4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    roundKey[i, j] = expandedKey[j, (round * 4) + i];
+                }
+            }
+
+            return roundKey;
         }
     }
 }

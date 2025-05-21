@@ -10,45 +10,78 @@ namespace AESAlgorithm.Controllers
     public class AES128Controller : ControllerBase
     {
         [HttpGet("encrypt")]
-        public string EncryptAES128(string input, string key)
+        public string EncryptAES128(string message, string key)
         {
             AES128Encrypt AES128Encrypt = new();
 
-            byte[] inputBytes = Helpers.ConvertStringToBytes(input);
-            byte[] keyBytes = Helpers.ConvertStringToBytes(key);
+            byte[] bMessage = Encoding.ASCII.GetBytes(message);
+            byte[] bKey = Encoding.ASCII.GetBytes(key);
 
-            //byte[] inputBytes = [0x32, 0x88, 0x31, 0xe0, 0xc0, 0xc7, 0x2b, 0x2b, 0x9f, 0x23, 0xa9, 0x7c, 0xa6, 0x94, 0x6a, 0x8f];
-            //byte[] keyBytes = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x97, 0x75, 0x46, 0x11, 0x94, 0x31];
+            if (bKey.Length != 16)
+                throw new Exception("The given Key is not the correct length");
 
-            //var t0 = new[] { inputBytes[0], inputBytes[1], inputBytes[2], inputBytes[3] };
+            int padding = 16 - (bMessage.Length % 16);
+            if (padding != 0)
+            {
+                Array.Resize(ref bMessage, bMessage.Length + padding);
+                for (int i = bMessage.Length - padding; i < bMessage.Length; i++)
+                {
+                    bMessage[i] = (byte)padding;
+                }
+            }
 
-            //var t1 =  Helpers.RotateWord(t0);
-            //var t2 = Helpers.RotateWord(t1);
+            byte[] result = new byte[bMessage.Length];
 
-            if (keyBytes.Length != 16)
-                throw new ArgumentException("Key must be exactly 16 bytes for AES-128 encryption.");
+            for (int i = 0; i < bMessage.Length; i += 16)
+            {
+                byte[] block = new byte[16];
+                Array.Copy(bMessage, i, block, 0, 16);
 
-            byte[] outputBytes = AES128Encrypt.Encrypt(inputBytes, keyBytes);
+                byte[] encryptedBlock = AES128Encrypt.Encrypt(block, bKey);
+                Array.Copy(encryptedBlock, 0, result, i, 16);
+            }
 
-            return Convert.ToBase64String(outputBytes);
+            return Convert.ToBase64String(result);
         }
 
         [HttpGet("decrypt")]
-        public string DecryptAES128(string input, string key)
+        public string DecryptAES128(string message, string key)
         {
             AES128Decrypt AES128Decrypt = new();
 
-            byte[] inputBytes = Convert.FromBase64String(input);
-            byte[] keyBytes = Helpers.ConvertStringToBytes(key);
+            byte[] bMessage = Convert.FromBase64String(message);
+            byte[] bKey = Encoding.ASCII.GetBytes(key);
 
-            //keyBytes = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x97, 0x75, 0x46, 0x11, 0x94, 0x31];
+            if (bMessage.Length %16 != 0)
+                throw new Exception("The given Message is not a multiple of 16!");
+            if (bKey.Length != 16)
+                throw new Exception("The given Key is not 16 Byte long!");
+            byte[] result = new byte[bMessage.Length];
 
-            if (keyBytes.Length != 16)
-                throw new ArgumentException("Key must be exactly 16 bytes for AES-128 decryption.");
+            for (int i = 0; i < bMessage.Length; i += 16)
+            {
+                byte[] block = new byte[16];
+                Array.Copy(bMessage, i, block, 0, 16);
 
-            byte[] outputBytes = AES128Decrypt.Decrypt(inputBytes, keyBytes);
+                byte[] decryptedBlock = AES128Decrypt.Decrypt(block, bKey);
+                Array.Copy(decryptedBlock, 0, result, i, 16);
+            }
 
-            return Encoding.UTF8.GetString(outputBytes).TrimEnd('\0');
+            int padding = result[result.Length - 1];
+            if (padding <= 0 || padding > 16)
+                throw new Exception("Invalid padding!");
+
+            for (int i = result.Length - padding; i < result.Length; i++)
+            {
+                if (result[i] != padding)
+                    throw new Exception("Invalid padding content!");
+            }
+
+            byte[] unpaddedResult = new byte[result.Length - padding];
+            Array.Copy(result, 0, unpaddedResult, 0, unpaddedResult.Length);
+
+            string decrypted = Encoding.ASCII.GetString(unpaddedResult);
+            return decrypted;
         }
     }
 }

@@ -11,19 +11,19 @@ namespace AESAlgorithm.Services
             byte[,] roundKeys = KeyExpansion(key);
             state = CopyInputToState(input, state);
 
-            RemoveRoundKey(GetRoundKey(roundKeys, 10));
+            RemoveRoundKey(Helpers.GetRoundKey(roundKeys, 10));
             InvShiftRows();
             InvSubBytes();
 
             for (int round = 9; round >= 1; round--)
             {
-                RemoveRoundKey(GetRoundKey(roundKeys, round));
+                RemoveRoundKey(Helpers.GetRoundKey(roundKeys, round));
                 InvMixColumns();
                 InvShiftRows();
                 InvSubBytes();
             }
 
-            RemoveRoundKey(GetRoundKey(roundKeys, 0));
+            RemoveRoundKey(Helpers.GetRoundKey(roundKeys, 0));
 
             return GetStateAsByteArray(state);
         }
@@ -108,7 +108,7 @@ namespace AESAlgorithm.Services
             {
                 for (int col = 0; col < 4; col++)
                 {
-                    state[row, col] = (byte)(state[row, col] ^ roundKey[row, col]);
+                    state[row, col] ^= roundKey[row, col];
                 }
             }
         }
